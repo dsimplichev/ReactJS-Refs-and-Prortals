@@ -6,40 +6,49 @@ export default function TimerChallenge({ title, targetTime }) {
   
   const timer = useRef()
   const dialog = useRef();
-  const [timerStarted, setTimerStarted] = useState(false);
-  const  [timeExpired, setTimerExpired] = useState(false); 
+ 
+  const [timerRemaining, setTimeRemanining] = useState(targetTime * 1000);
+  const timerIsActive = timerRemaining > 0 && timerRemaining < targetTime * 1000;
   
+  if (timerRemaining <= 0) {
+    clearInterval(timer.current)
+    setTimeRemanining(targetTime * 1000)
+    dialog.current.open()
+  }
   
   function handleStart() {
     
-    timer.current = setTimeout(() => {
-      setTimerExpired(true);
-      dialog.current.showModal()
-    },targetTime * 1000);
+    timer.current = setInterval(() => {
+      setTimeRemanining(prevTimeRemaining => prevTimeRemaining - 10);
+    }, 10);
   
-    setTimerStarted(true)
+    
   }
   
   function handleStop() {
-    clearTimeout(timer.current)
+    dialog.current.open()
+    clearInterval(timer.current)
   }
 
   return (
        <>
-        <ResultModal ref={dialog} targetTime={targetTime} result='lost' />
+        <ResultModal 
+        ref={dialog} 
+        targetTime={targetTime} 
+        remainingTime={timerRemaining} 
+        />
        <section className="challenge">
           <h2>{title}</h2>
-          {timeExpired && <p>You lost!</p>}
-          <p className="challenge-time">
+           <p className="challenge-time">
             {targetTime} second{targetTime > 1 ? 's' : ''}
           </p>
           <p>
-            <button onClick={handleStart}>
-                {timerStarted ? 'Stop' : 'Start'} Challenge
+            <button onClick={timerIsActive ? handleStop : handleStart}>
+                {timerIsActive ? 'Stop' : 'Start'} Challenge
             </button>
           </p>
-          <p className={timerStarted ? 'active' : undefined}>
-            {timerStarted ? 'Time is running...' : 'Timer inactiv'}
+          <p className={timerIsActive ? 'active' : undefined}>
+            {timerIsActive ? 'Time is running...' : 'Timer inactiv'}
           </p>
         </section>
         </>
